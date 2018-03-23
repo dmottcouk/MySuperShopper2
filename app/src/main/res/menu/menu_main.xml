@@ -1,0 +1,35 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="uk.co.dmott.mysupershopper2.list.ListFragment">
+    <item
+        android:id="@+id/mynewbutton"
+        android:title=""
+        app:showAsAction="always"
+        android:icon="@drawable/ic_action_fiber_new"
+        />
+
+    <item
+        android:id="@+id/mysavebutton"
+        android:title=""
+        app:showAsAction="always"
+        android:icon="@drawable/ic_action_save"
+        />
+
+    <item
+        android:id="@+id/action_new"
+        android:orderInCategory="100"
+        android:title="@string/action_new"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_save"
+        android:orderInCategory="101"
+        android:title="@string/action_save"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_choose"
+        android:orderInCategory="102"
+        android:title="@string/action_choose_table"
+        app:showAsAction="never" />
+
+</menu>
