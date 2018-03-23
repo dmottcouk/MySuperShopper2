@@ -24,6 +24,11 @@ public class ShopItemRepository {
         return ShopItemDao.getShopItems();
     }
 
+
+    public LiveData<List<ShopItem>> getListOfDataForShop(String ShopId){
+        return ShopItemDao.getShopitemsForNamedShop(ShopId);
+    }
+
     public LiveData<ShopItem> getShopItem(String itemId){
         return ShopItemDao.getShopItemById(itemId);
     }

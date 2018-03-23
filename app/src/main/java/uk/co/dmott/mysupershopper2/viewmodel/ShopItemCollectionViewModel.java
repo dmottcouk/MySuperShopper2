@@ -30,6 +30,12 @@ public class ShopItemCollectionViewModel extends ViewModel {
         deleteItemTask.execute(ShopItem);
     }
 
+    public LiveData<List<ShopItem>> getShopItemsForNamedShop(String aDefault) {
+        return repository.getListOfData();
+
+
+    }
+
     private class DeleteItemTask extends AsyncTask<ShopItem, Void, Void> {
 
         @Override

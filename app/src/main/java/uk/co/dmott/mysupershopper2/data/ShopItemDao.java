@@ -29,7 +29,7 @@ public interface ShopItemDao {
 */
 
     @Query("SELECT * FROM ShopItem WHERE shopName = :shopId")
-    LiveData<List<ShopItem>> getShops(String shopId);
+    LiveData<List<ShopItem>> getShopitemsForNamedShop(String shopId);
 
 
     /**
