@@ -3,12 +3,15 @@ package uk.co.dmott.mysupershopper2.create;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,8 +52,12 @@ public class CreateFragment extends Fragment {
     private EditText messageInput;
     private Button speak;
     private TextView category;
+    private SharedPreferences myPreferences;
+    private String currentShop;
 
     private PagerAdapter pagerAdapter;
+
+    private static final String TAG = "CreateFragment";
 
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
@@ -92,6 +99,22 @@ public class CreateFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_create2, container, false);
 
+        myPreferences = (getActivity().getSharedPreferences("dmott.co.MySuperShopper2", Context.MODE_PRIVATE));
+
+        SharedPreferences.Editor myEditor = myPreferences.edit();
+
+        if (myPreferences.contains("LatestShopList")) {
+            currentShop = myPreferences.getString("LatestShopList", "Default");
+            Log.d(TAG, "In create and shop is " + currentShop);
+
+
+        }
+        else
+        {
+            throw new IllegalArgumentException("Impossible error - no SharedPreferences");
+        }
+
+
         back = (ImageButton) v.findViewById(R.id.imb_create_back);
 
 
@@ -120,9 +143,10 @@ public class CreateFragment extends Fragment {
                 ShopItem listItem = new ShopItem(
                         getDate(),
                         messageInput.getText().toString(),
-                        "Default",
+                        currentShop,
                         getDrawableResource(drawablePager.getCurrentItem())
                 );
+                Log.d(TAG, "In create done - new item to database , and shop is " + currentShop);
                 newShopItemViewModel.addNewItemToDatabase(listItem);
 
                 startListActivity();
@@ -240,7 +264,11 @@ public class CreateFragment extends Fragment {
     }
 
     private void startListActivity() {
-        startActivity(new Intent(getActivity(), ListActivity.class));
+        Intent intent = new Intent(getActivity(), ListActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        //startActivity(new Intent(getActivity(), ListActivity.class));
+        startActivity(intent);
     }
 
     private class DrawablePagerAdapter extends PagerAdapter {

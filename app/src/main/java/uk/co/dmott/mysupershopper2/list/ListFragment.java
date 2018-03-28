@@ -6,18 +6,17 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MotionEventCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,12 +33,12 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -54,6 +53,8 @@ import uk.co.dmott.mysupershopper2.helper.ItemTouchHelperAdapter;
 import uk.co.dmott.mysupershopper2.helper.ItemTouchHelperViewHolder;
 import uk.co.dmott.mysupershopper2.helper.OnStartDragListener;
 import uk.co.dmott.mysupershopper2.helper.SimpleItemTouchHelperCallback;
+import uk.co.dmott.mysupershopper2.neworsaveshop.CreateSaveShopActivity;
+import uk.co.dmott.mysupershopper2.newshop.NewShopActivity;
 import uk.co.dmott.mysupershopper2.viewmodel.ShopItemCollectionViewModel;
 
 /**
@@ -77,6 +78,9 @@ public class ListFragment extends Fragment implements OnStartDragListener{
     private SharedPreferences myPreferences;
     private String currentShop;
     private Context ctxt;
+    private boolean dialogCancelled;
+
+    private Boolean newShoponSave;
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
@@ -100,6 +104,18 @@ public class ListFragment extends Fragment implements OnStartDragListener{
         setHasOptionsMenu(true);
     }
 
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        Log.d(TAG, "onStart  ");
+
+
+    }
+
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         myPreferences = (getActivity().getSharedPreferences("dmott.co.MySuperShopper2", Context.MODE_PRIVATE));
@@ -108,15 +124,16 @@ public class ListFragment extends Fragment implements OnStartDragListener{
 
         if (myPreferences.contains("LatestShopList"))
         {
-            currentShop = myPreferences.getString("LatestShopList", "default") ;
-            Log.d(TAG, "Current shop is " + currentShop);
+            currentShop = myPreferences.getString("LatestShopList", "Default") ;
+            Log.d(TAG, "In onActivityCreated  Current shop is " + currentShop);
 
         }
         else
         {
-            myEditor.putString("LatestShopList", "default");
-            currentShop = "default";
+            myEditor.putString("LatestShopList", "Default");
+            currentShop = "Default";
             Log.d(TAG, "Current shop is not in myPreferences so creating LatestShopList ");
+            myEditor.commit();
         }
 
 
@@ -124,14 +141,21 @@ public class ListFragment extends Fragment implements OnStartDragListener{
         shopItemCollectionViewModel = ViewModelProviders.of(this, viewModelFactory)
                 .get(ShopItemCollectionViewModel.class);
 
-        shopItemCollectionViewModel.getShopItemsForNamedShop("default").observe(this, new Observer<List<ShopItem>>() {
-            @Override
+        Log.d(TAG, "In onActivityCreated - observe shop  " + currentShop);
+
+ //       shopItemCollectionViewModel.getShopItemsForNamedShop("Default").observe(this, new Observer<List<ShopItem>>() {
+        shopItemCollectionViewModel.getShopItemsForNamedShop(currentShop).observe(this, new Observer<List<ShopItem>>() {
+
+        @Override
             public void onChanged(@Nullable List<ShopItem> ShopItems) {
                 if (ListFragment.this.listOfData == null) {
+                    Log.d(TAG, "In OnChanged of onActivityCreated");
                     setListData(ShopItems);
                 }
             }
         });
+
+      //  setListData(ShopItems);
 
     }
 
@@ -210,7 +234,11 @@ public class ListFragment extends Fragment implements OnStartDragListener{
     }
 
     public void startCreateActivity() {
-        startActivity(new Intent(getActivity(), CreateActivity.class));
+
+        Intent intent = new Intent(getActivity(), CreateActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        //startActivity(new Intent(getActivity(), CreateActivity.class));
+        startActivity(intent);
     }
 
 
@@ -239,6 +267,7 @@ public class ListFragment extends Fragment implements OnStartDragListener{
 
 
     public void setListData(List<ShopItem> listOfData) {
+        Log.d(TAG, "In setListData");
         this.listOfData = listOfData;
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
@@ -313,6 +342,9 @@ public class ListFragment extends Fragment implements OnStartDragListener{
         public void onBindViewHolder(final ItemViewHolder holder, int position) {
             ShopItem currentItem = listOfData.get(position);
             holder.coloredCircle.setImageResource(currentItem.getShopItemType());
+            String shopName = currentItem.getShopName();
+            Log.d(TAG, "Shop name is " + shopName);
+
             holder.message.setText(
                     currentItem.getShopItemName()
             );
@@ -349,7 +381,29 @@ public class ListFragment extends Fragment implements OnStartDragListener{
         @Override
         public boolean onItemMove(int fromPosition, int toPosition) {
             //Collections.swap(mItems, fromPosition, toPosition);
+            ShopItem item = listOfData.get(fromPosition);
+            listOfData.remove(fromPosition);
+            listOfData.add(toPosition, item);
+
+
             notifyItemMoved(fromPosition, toPosition);
+
+            int index = 0;
+            Log.d(TAG, "onItemMove ");
+
+            for (ShopItem itm :listOfData) {
+                Log.d(TAG, "Index " + index);
+                Log.d(TAG, "Shop name " + itm.getShopName());
+                Log.d(TAG, "Item name " + itm.getShopItemName());
+                Log.d(TAG, "Item id " + itm.getItemId());
+                Log.d(TAG, "Drawable id " + itm.getShopItemType());
+                index++;
+            }
+
+
+
+
+
             return true;
         }
         @Override
@@ -397,18 +451,6 @@ public class ListFragment extends Fragment implements OnStartDragListener{
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     private class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> implements ItemTouchHelperAdapter {//6
 
         @Override
@@ -441,6 +483,19 @@ public class ListFragment extends Fragment implements OnStartDragListener{
             listOfData.remove(oldPos);
             listOfData.add(newPos, item);
             notifyItemMoved(oldPos, newPos);
+            int index = 0;
+            Log.d(TAG, "moveitem ");
+
+            for (ShopItem itm :listOfData) {
+                Log.d(TAG, "Index " + index);
+                Log.d(TAG, "Old Shop name " + itm.getShopName());
+                Log.d(TAG, "Old Item name " + itm.getShopItemName());
+                Log.d(TAG, "Old Item id " + itm.getItemId());
+                Log.d(TAG, "Old Drawable id " + itm.getShopItemType());
+                index++;
+            }
+
+
         }
 
 
@@ -549,10 +604,14 @@ public class ListFragment extends Fragment implements OnStartDragListener{
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+
         switch (item.getItemId()) {
 
             case R.id.mynewbutton:
                 Toast.makeText(getActivity(), "Pressed new button", Toast.LENGTH_SHORT).show();
+/**
+
                 final View getnewShopView = layoutInflater.inflate(R.layout.newshop_create, null);
                 final AlertDialog alertDialog = new AlertDialog.Builder(ctxt).create();
                 alertDialog.setTitle("Your Title Here");
@@ -567,6 +626,21 @@ public class ListFragment extends Fragment implements OnStartDragListener{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                             Log.d(TAG, "New shop alert .. positive button");
+                            String newShopName = etComments.getText().toString();
+                            if (!newShopName.isEmpty()) {
+
+                                myPreferences = (getActivity().getSharedPreferences("dmott.co.MySuperShopper2", Context.MODE_PRIVATE));
+
+                                SharedPreferences.Editor myEditor = myPreferences.edit();
+                                myEditor.putString("LatestShopList", etComments.getText().toString());
+                                Log.d(TAG, "In the New shop dialog - saving new shop to Preferences ");
+                                myEditor.commit();
+
+
+                                dialogCancelled = false;
+                            }
+                            else
+                                dialogCancelled = true;
                     }
                 });
 
@@ -575,6 +649,7 @@ public class ListFragment extends Fragment implements OnStartDragListener{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.d(TAG, "New shop alert .. negative button");
+                        dialogCancelled= true;
                         alertDialog.dismiss();
                     }
                 });
@@ -582,15 +657,108 @@ public class ListFragment extends Fragment implements OnStartDragListener{
 
                 alertDialog.setView(getnewShopView);
                 alertDialog.show();
+                Log.d(TAG, "New shop finished doing dialog");
+ /
+                if (!dialogCancelled)
+                {
+                    Log.d(TAG, "New shop restarting the activity");
+                    getActivity().finish();
+                    startActivity(getActivity().getIntent());
+
+                }
+                else
+                {
+                    Log.d(TAG, "Dont restart the activity");
+                }
+/
+ */
+
+                Intent newShopIntent = new Intent(getActivity(), NewShopActivity.class);
+                //Bundle myBundle = new Bundle();
+                //myBundle.putParcelableArrayList("data",  (ArrayList<? extends Parcelable>)listOfData); // Be sure con is not null here
+                //createSaveIntent.putParcelableArrayListExtra("dmott.co.uk.shopitems",(ArrayList<? extends Parcelable>)listOfData);
+                newShopIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                startActivity(newShopIntent);
+
 
 
 
 
                 break;
             case R.id.mysavebutton:
+/**
                 Toast.makeText(getActivity(), "Pressed save button", Toast.LENGTH_SHORT).show();
-                // Do Fragment menu item stuff here
+                final View getsaveShopView = layoutInflater.inflate(R.layout.saveshop_dialog, null);
+                final AlertDialog alertDialog2 = new AlertDialog.Builder(ctxt).create();
+                alertDialog2.setTitle("Save or Save as New");
+                //alertDialog.setIcon("Icon id here");
+                alertDialog2.setCancelable(false);
+                alertDialog2.setMessage("Click the checkbox to save as new Shop list");
+
+
+                final EditText etNewname = (EditText) getsaveShopView.findViewById(R.id.et_saveasnewname);
+                final CheckBox cbSaveasNew = (CheckBox) getsaveShopView.findViewById(R.id.cb_saveasnew);
+
+                cbSaveasNew.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                        Log.d(TAG, "Checkbox listener change b = " + String.valueOf(b));
+                        if (b == true)
+                        {
+                            etNewname.setEnabled(true);
+                            newShoponSave = true;
+
+
+                        }
+                        else
+                        {
+                            etNewname.setEnabled(false);
+                            newShoponSave = false;
+                        }
+
+                    }
+                });
+
+
+
+                alertDialog2.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG, "New shop alert .. positive button");
+
+                        // if new Shop then we need to
+
+
+
+                    }
+                });
+
+
+                alertDialog2.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG, "New shop alert .. negative button");
+                        alertDialog2.dismiss();
+                    }
+                });
+
+
+                alertDialog2.setView(getsaveShopView);
+                alertDialog2.show();
+*/
+
+                Intent createSaveIntent = new Intent(getActivity(), CreateSaveShopActivity.class);
+                //Bundle myBundle = new Bundle();
+                //myBundle.putParcelableArrayList("data",  (ArrayList<? extends Parcelable>)listOfData); // Be sure con is not null here
+                createSaveIntent.putParcelableArrayListExtra("dmott.co.uk.shopitems",(ArrayList<? extends Parcelable>)listOfData);
+
+                createSaveIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(createSaveIntent);
+
+
                 break;
+
             case R.id.action_new:
                 Toast.makeText(getActivity(), "menu = new", Toast.LENGTH_SHORT).show();
 
@@ -602,6 +770,12 @@ public class ListFragment extends Fragment implements OnStartDragListener{
 
             case R.id.action_choose:
                 Toast.makeText(getActivity(), "menu = choose", Toast.LENGTH_SHORT).show();
+                // Do Fragment menu item stuff here
+                break;
+            case R.id.action_refresh:
+                Toast.makeText(getActivity(), "menu = refresh", Toast.LENGTH_SHORT).show();
+                getActivity().finish();
+                startActivity(getActivity().getIntent());
                 // Do Fragment menu item stuff here
                 break;
             default:

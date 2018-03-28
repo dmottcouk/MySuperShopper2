@@ -32,6 +32,9 @@ public interface ShopItemDao {
     LiveData<List<ShopItem>> getShopitemsForNamedShop(String shopId);
 
 
+    @Query("DELETE FROM ShopItem WHERE shopName = :shopId")
+    void deleteShopitemsForNamedShop(String shopId);
+
     /**
      * Insert a new ShopItem
      * @param ShopItem

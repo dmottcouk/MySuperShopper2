@@ -19,6 +19,15 @@
     <string name="action_new">New</string>
     <string name="action_save">Save</string>
     <string name="action_choose_table">Choose shop</string>
+    <string name="hintforneworsave">Enable checkbox for new shop</string>
+    <string name="NeworSavelbl">New?</string>
+    <string name="newshopnamehint">New shop name</string>
+    <string name="title_neworsaveshop">Click the checkbox to save to a new Shop</string>
+    <string name="hint_createnewshop">New shop name</string>
+    <string name="btn_lablelsave">Save</string>
+    <string name="buttonlabelcancel">Cancel</string>
+    <string name="refresh">Refresh</string>
+    <string name="title_newshop">Enter name for new shop</string>
 
 
 </resources>

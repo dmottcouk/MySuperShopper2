@@ -1,26 +1,20 @@
 package uk.co.dmott.mysupershopper2.data;
 
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
 
 /**
- * Created by david on 22/03/18.
+ * Created by david on 27/03/18.
  */
 
-@Entity
-public class ShopItem implements Parcelable {
+public class NewShopItem implements Parcelable {
 
-    @PrimaryKey
-    @NonNull
     private String itemId;
     private String shopItemName;
     private String shopName;
     private int shopItemType;
 
-    public ShopItem(String itemId, String shopItemName, String shopName, int shopItemType) {
+    public NewShopItem(String itemId, String shopItemName, String shopName, int shopItemType) {
         this.itemId = itemId;
         this.shopItemName = shopItemName;
         this.shopName = shopName;
@@ -74,17 +68,17 @@ public class ShopItem implements Parcelable {
         dest.writeInt(shopItemType);
 
     }
-    public static final Parcelable.Creator<ShopItem> CREATOR = new Parcelable.Creator<ShopItem>() {
-        public ShopItem createFromParcel(Parcel in) {
-            return new ShopItem(in);
+    public static final Parcelable.Creator<NewShopItem> CREATOR = new Parcelable.Creator<NewShopItem>() {
+        public NewShopItem createFromParcel(Parcel in) {
+            return new NewShopItem(in);
         }
         @Override
-        public ShopItem[] newArray(int size) {
-            return new ShopItem[size];
+        public NewShopItem[] newArray(int size) {
+            return new NewShopItem[size];
         }
     };
 
-    private ShopItem(Parcel in) {
+    private NewShopItem(Parcel in) {
         itemId = in.readString();
         shopItemName = in.readString();
         shopName = in.readString();

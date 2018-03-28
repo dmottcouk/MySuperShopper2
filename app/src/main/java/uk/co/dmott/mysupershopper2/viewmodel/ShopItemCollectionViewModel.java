@@ -29,10 +29,15 @@ public class ShopItemCollectionViewModel extends ViewModel {
         DeleteItemTask deleteItemTask = new DeleteItemTask();
         deleteItemTask.execute(ShopItem);
     }
+    public void deleteShopItemsForNamedShop(String ShopName) {
+        DeleteItemForNamedShopTask deleteItemForNamedShopTask = new DeleteItemForNamedShopTask();
+        deleteItemForNamedShopTask.execute(ShopName);
+    }
 
-    public LiveData<List<ShopItem>> getShopItemsForNamedShop(String aDefault) {
-        return repository.getListOfData();
 
+    public LiveData<List<ShopItem>> getShopItemsForNamedShop(String shopName) {
+        //return repository.getListOfData();
+        return repository.getListOfDataForShop(shopName);
 
     }
 
@@ -45,5 +50,13 @@ public class ShopItemCollectionViewModel extends ViewModel {
         }
     }
 
+    private class DeleteItemForNamedShopTask extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... item) {
+            repository.deleteShopItemForShop(item[0]);
+            return null;
+        }
+    }
     
 }
